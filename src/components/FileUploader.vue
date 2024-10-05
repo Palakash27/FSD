@@ -43,6 +43,8 @@ const uploadFile = async () => {
     const { data } = await api.uploadExcel(formData)
     console.log('uploadExcel -->', data)
 
+    localStorage.setItem('analysis-id', data.data.id)
+
     // Reset file input field and selected file
     fileInput.value.value = ''
     selectedFile.value = null

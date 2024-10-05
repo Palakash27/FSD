@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <h1>Click Zone Visualizer</h1>
-    <FileUploader @file-uploaded="handleFileUploaded" />
+    <FileUploader @file-uploaded="handleFetchClickZoneData" />
     <ClickZoneChart
       v-if="chartData.length"
       :chartData="chartData"
@@ -20,17 +20,22 @@ const chartData = ref([])
 
 const handleDataDelete = async () => {
   try {
-    const { data } = await api.deleteClickZoneData()
+    const analysisId = Number(localStorage.getItem('analysis-id') ?? 0)
+    if (!analysisId) return
+    const { data } = await api.deleteClickZoneData(analysisId)
     console.log('deleteClickZoneData -->', data)
     chartData.value = data.data
+    localStorage.removeItem('analysis-id')
   } catch (error) {
     console.error('Error deleteing chart data:', error)
   }
 }
 
-const handleFileUploaded = async () => {
+const handleFetchClickZoneData = async () => {
   try {
-    const { data } = await api.fetchClickZoneData()
+    const analysisId = Number(localStorage.getItem('analysis-id') ?? 0)
+    if (!analysisId) return
+    const { data } = await api.fetchClickZoneData(analysisId)
     console.log('fetchClickZoneData -->', data)
     chartData.value = data.data
   } catch (error) {
@@ -39,7 +44,7 @@ const handleFileUploaded = async () => {
 }
 
 onMounted(() => {
-  handleFileUploaded()
+  handleFetchClickZoneData()
 })
 </script>
 
