@@ -2,17 +2,32 @@
   <div class="file-uploader-container">
     <h3>Choose an Excel file:</h3>
     <div class="file-uploader">
-      <input type="file" @change="onFileChange" accept=".xlsx" />
+      <input type="file" ref="fileInput" @change="onFileChange" accept=".xlsx" />
       <button @click="uploadFile" :disabled="!selectedFile">Upload</button>
+    </div>
+    <div v-if="message" :class="['feedback-message', success ? 'success' : 'error']">
+      {{ message }}
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, defineEmits } from 'vue'
 import api from '@/services/api'
 
+const emit = defineEmits(['file-uploaded'])
+
 const selectedFile = ref(null)
+const fileInput = ref(null)
+const message = ref('') // Message for feedback
+const success = ref(false) // To track if the response is success or error
+
+const hideMessageAfterDelay = (delay = 7) => {
+  setTimeout(() => {
+    message.value = ''
+    success.value = false
+  }, 1000 * delay)
+}
 
 const onFileChange = (event) => {
   selectedFile.value = event.target.files[0]
@@ -25,14 +40,29 @@ const uploadFile = async () => {
   formData.append('file', selectedFile.value)
 
   try {
-    const response = await api.uploadExcel(formData)
-    // let response = { responseStatus: 200, data: [], message: 'File uploaded successfully' }
-    console.log('Response -->', response)
-    // reset selected file
+    const { data } = await api.uploadExcel(formData)
+    console.log('uploadExcel -->', data)
+
+    // Reset file input field and selected file
+    fileInput.value.value = ''
     selectedFile.value = null
-    alert(response.message)
+
+    // Show success message
+    success.value = true
+    message.value = data.message
+    emit('file-uploaded')
+
+    // Hide message after 5 seconds
+    hideMessageAfterDelay(5)
   } catch (error) {
     console.error('File upload error:', error)
+
+    // Show error message
+    message.value = 'File upload failed. Please try again.'
+    success.value = false
+
+    // Hide message after 5 seconds
+    hideMessageAfterDelay(5)
   }
 }
 </script>
@@ -43,7 +73,7 @@ const uploadFile = async () => {
   flex-direction: column;
   gap: 10px;
   width: 50%;
-  margin: 0 auto;
+  margin: 50px auto;
   border-radius: 5px;
 
   h3 {
@@ -60,13 +90,12 @@ const uploadFile = async () => {
     padding: 20px;
 
     [type='file'] {
-      /* Style the color of the message that says 'No file chosen' */
       color: #878787;
     }
 
     [type='file']::-webkit-file-upload-button {
-      background: #ed1c1b;
-      border: 2px solid #ed1c1b;
+      background: #54a1a1;
+      border: 2px solid #54a1a1;
       border-radius: 4px;
       color: #fff;
       cursor: pointer;
@@ -82,6 +111,19 @@ const uploadFile = async () => {
       border: 2px solid #535353;
       color: #000;
     }
+  }
+
+  .feedback-message {
+    margin-top: 10px;
+    font-size: 14px;
+  }
+
+  .success {
+    color: green;
+  }
+
+  .error {
+    color: red;
   }
 }
 </style>

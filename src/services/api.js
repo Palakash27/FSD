@@ -1,8 +1,10 @@
 import axios from 'axios'
 
+const API_BASE_URL = 'https://localhost:44383/api'
+
 const api = {
   uploadExcel(fileData) {
-    return axios.post('/api/upload', fileData, {
+    return axios.post(`${API_BASE_URL}/excelupload/upload`, fileData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -10,7 +12,11 @@ const api = {
   },
 
   fetchClickZoneData() {
-    return axios.get('/api/zones/clicks')
+    return axios.get(`${API_BASE_URL}/calculateclick/count`)
+  },
+
+  deleteClickZoneData() {
+    return axios.delete(`${API_BASE_URL}/calculateclick/count`)
   }
 }
 
